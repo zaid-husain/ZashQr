@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import type { TemplateDocument, CategoryType } from './types/template';
@@ -14,11 +14,15 @@ import { SEO } from './components/seo/SEO';
 import { createSoftwareAppSchema, createOrganizationSchema } from './utils/seo-schema';
 
 // Helper component for Template Category route
-const TemplateCategoryView = ({ onOpenTemplate, onCreateBlank }: any) => {
+interface TemplateCategoryViewProps {
+  onOpenTemplate: (template: TemplateDocument) => void;
+  onCreateBlank: (width: number, height: number, category: CategoryType, name: string) => void;
+}
+
+const TemplateCategoryView: React.FC<TemplateCategoryViewProps> = ({ onOpenTemplate, onCreateBlank }) => {
   const location = useLocation();
   const categorySlug = location.pathname.split('/').pop()?.replace(/-/g, ' ');
   
-  // Format slug back to original category name (basic mapping)
   const formatCategory = (slug: string) => {
     return slug.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
@@ -36,6 +40,54 @@ const TemplateCategoryView = ({ onOpenTemplate, onCreateBlank }: any) => {
         initialCategory={formattedCategory}
         onOpenTemplate={onOpenTemplate}
         onCreateBlank={onCreateBlank}
+      />
+    </>
+  );
+};
+
+// Route wrapper for /about
+const AboutPageRoute: React.FC<{ showToast: (msg: string) => void }> = ({ showToast }) => {
+  const [modalOpen, setModalOpen] = useState(true);
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <SEO 
+        title="About QR Studio – Built by Zashly"
+        description="QR Studio is part of the Zashly ecosystem. Discover how we built a fast, free, and completely private QR code generator."
+        canonicalUrl="https://qrstudio.zashly.com/about"
+      />
+      <QRGeneratorView showToast={showToast} />
+      <AboutModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          navigate('/');
+        }}
+      />
+    </>
+  );
+};
+
+// Route wrapper for /privacy
+const PrivacyPageRoute: React.FC<{ showToast: (msg: string) => void }> = ({ showToast }) => {
+  const [modalOpen, setModalOpen] = useState(true);
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <SEO 
+        title="Privacy Policy – QR Studio"
+        description="QR Studio is 100% private and client-side. No tracking, no backend database, and zero data leaves your browser."
+        canonicalUrl="https://qrstudio.zashly.com/privacy"
+      />
+      <QRGeneratorView showToast={showToast} />
+      <AboutModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          navigate('/');
+        }}
       />
     </>
   );
@@ -59,9 +111,8 @@ export default function App() {
   const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: '' });
   
   const location = useLocation();
-  const navigate = useNavigate();
 
-  // If the hash has #editor but no draft, remove it. 
+  // Sync hash with editor state
   useEffect(() => {
     if (activeEditorTemplate) {
       if (window.location.hash !== '#editor') {
@@ -222,22 +273,11 @@ export default function App() {
             />
             <Route 
               path="/about" 
-              element={
-                <>
-                  <SEO 
-                    title="About QR Studio – Built by Zashly"
-                    description="QR Studio is part of the Zashly ecosystem. Discover how we built a fast, free, and completely private QR code generator."
-                    canonicalUrl="https://qrstudio.zashly.com/about"
-                  />
-                  {/* Reuse the AboutModal but open automatically or render inline. 
-                      Since it's a modal component, we just trigger it and render an empty container, or we could make it inline. 
-                      For now, just render the generator and trigger the modal. */}
-                  {(() => {
-                    useEffect(() => setAboutOpen(true), []);
-                    return <QRGeneratorView showToast={showToast} />;
-                  })()}
-                </>
-              } 
+              element={<AboutPageRoute showToast={showToast} />} 
+            />
+            <Route 
+              path="/privacy" 
+              element={<PrivacyPageRoute showToast={showToast} />} 
             />
             {/* Fallback */}
             <Route path="*" element={<QRGeneratorView showToast={showToast} />} />
@@ -253,13 +293,11 @@ export default function App() {
         />
       )}
 
-      {/* About Modal */}
-      <AboutModal isOpen={aboutOpen} onClose={() => {
-        setAboutOpen(false);
-        if (location.pathname === '/about' || location.pathname === '/privacy') {
-          navigate('/');
-        }
-      }} />
+      {/* Header/Drawer About Modal */}
+      <AboutModal
+        isOpen={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+      />
 
       {/* Footer (hidden when full editor is active) */}
       {!activeEditorTemplate && (
