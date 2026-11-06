@@ -1,18 +1,21 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Search,
   SlidersHorizontal,
   Heart,
   FolderPlus,
-  Sparkles,
   Plus,
   X,
   Layers,
   ArrowRight,
   Clock,
-  LayoutGrid
+  LayoutGrid,
+  ChevronDown,
+  Check,
+  Tag
 } from 'lucide-react';
-import type { CategoryType, TemplateDocument, TemplateStyle } from '../../types/template';
+import type { CategoryType, TemplateDocument } from '../../types/template';
 import { ALL_TEMPLATES, ALL_CATEGORIES } from '../../data/templates';
 import { TemplateCard } from './TemplateCard';
 import {
@@ -31,23 +34,13 @@ interface TemplateGalleryProps {
   initialCategory?: string;
 }
 
-const STYLES: (TemplateStyle | 'All')[] = [
-  'All',
-  'Minimal',
-  'Corporate',
-  'Modern',
-  'Creative',
-  'Luxury',
-  'Bold',
-  'Elegant',
-  'Dark',
-  'Light',
-  'Colorful',
-  'Glassmorphism',
-  'Monochrome',
-  'Vintage',
-  'Abstract',
-  'Tech'
+const POPULAR_CATEGORIES: CategoryType[] = [
+  'Flyers',
+  'Posters',
+  'Business Cards',
+  'Instagram Post',
+  'Restaurant Menu',
+  'Event Invitation'
 ];
 
 type GalleryTab = 'all' | 'favorites' | 'my-templates' | 'recent';
@@ -59,12 +52,48 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<GalleryTab>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'All');
-  const [selectedStyle, setSelectedStyle] = useState<string>('All');
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+  const [styleDraft, setStyleDraft] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [catDropdownOpen, setCatDropdownOpen] = useState(false);
+  const [catSearch, setCatSearch] = useState('');
+  const [catDraft, setCatDraft] = useState<string>('All');
+  const [stylePanelOpen, setStylePanelOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => getFavoriteIds());
   const [myTemplates, setMyTemplates] = useState<TemplateDocument[]>(() => getMyTemplates());
   const [recentIds, setRecentIds] = useState<string[]>(() => getRecentTemplateIds());
   const [blankModalOpen, setBlankModalOpen] = useState(false);
+
+  // Keep draft in sync when opening
+  useEffect(() => {
+    if (catDropdownOpen) setCatDraft(selectedCategory);
+  }, [catDropdownOpen, selectedCategory]);
+
+  // Close dropdowns on Escape
+  useEffect(() => {
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setCatDropdownOpen(false);
+        setStylePanelOpen(false);
+      }
+    }
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
+
+  const availableStyles = useMemo(() => {
+    const styles = new Set<string>();
+    [...ALL_TEMPLATES, ...myTemplates].forEach((t) => styles.add(t.style));
+    return Array.from(styles).sort();
+  }, [myTemplates]);
+
+  const filteredCategories = useMemo(() => {
+    const q = catSearch.trim().toLowerCase();
+    if (!q) return ALL_CATEGORIES;
+    return ALL_CATEGORIES.filter((c) => c.toLowerCase().includes(q));
+  }, [catSearch]);
+
+  const activeFilterCount = selectedStyles.length + (selectedCategory !== 'All' ? 1 : 0);
 
   // Sync storage on tab switches
   useEffect(() => {
@@ -126,8 +155,8 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
       if (selectedCategory !== 'All' && t.category !== selectedCategory) {
         return false;
       }
-      // Style match
-      if (selectedStyle !== 'All' && t.style !== selectedStyle) {
+      // Style match (multi-select)
+      if (selectedStyles.length > 0 && !selectedStyles.includes(t.style)) {
         return false;
       }
       // Search match
@@ -143,7 +172,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
       }
       return true;
     });
-  }, [activeTab, selectedCategory, selectedStyle, searchQuery, favorites, myTemplates, recentIds]);
+  }, [activeTab, selectedCategory, selectedStyles, searchQuery, favorites, myTemplates, recentIds]);
 
   const blankPresets = [
     { label: 'Flyer / Poster (A4)', width: 600, height: 840, category: 'Flyers' as CategoryType },
@@ -158,125 +187,80 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      {/* Hero Banner / Header */}
-      <div className="relative rounded-3xl overflow-hidden border border-border/80 bg-gradient-to-b from-card via-card/90 to-background p-6 sm:p-10 shadow-xs">
-        <div className="max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-            <Sparkles size={14} />
-            <span>Canva-Inspired QR Design Studio</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-            Print & Digital QR Templates
-          </h1>
-
-          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-            Create high-converting posters, flyers, menus, business cards, stickers, and social posts with live editable QR codes in seconds.
-          </p>
-
-          {/* Quick Actions */}
-          <div className="pt-2 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setBlankModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-sm hover:opacity-90 transition-all transform hover:scale-[1.02]"
-            >
-              <Plus size={16} />
-              <span>Start Blank Design</span>
-            </button>
-
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-3 py-2 rounded-xl bg-muted/50 border border-border/60">
-              <Layers size={14} />
-              <span className="font-semibold text-foreground">{ALL_TEMPLATES.length}+</span>
-              <span>Ready-Made Templates</span>
+      {/* Compact Hero */}
+      <div className="relative rounded-2xl overflow-hidden border border-border/80 bg-gradient-to-r from-card via-card/90 to-muted/30 px-5 py-5 sm:px-8 sm:py-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5 max-w-xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                Print & Digital QR Templates
+              </h1>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                <Layers size={11} />
+                {ALL_TEMPLATES.length + myTemplates.length}+ templates
+              </span>
             </div>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              Posters, flyers, menus, cards and social posts with live editable QR codes.
+            </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setBlankModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-sm hover:opacity-90 transition-all shrink-0"
+          >
+            <Plus size={15} />
+            <span>Start Blank Design</span>
+          </button>
         </div>
       </div>
 
       {/* Unified Filters Toolbar */}
-      <div className="bg-muted/10 border border-border/60 rounded-2xl p-4 sm:p-5 space-y-4 shadow-sm">
-        {/* Top Row: Navigation Tabs & Search */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border/60 pb-4">
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
-            <button
-              type="button"
-              onClick={() => { setActiveTab('all'); setSelectedCategory('All'); }}
-              className={cn(
-                "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5",
-                activeTab === 'all'
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-            >
-              <LayoutGrid size={14} />
-              <span>All Templates</span>
-              <span className={cn("px-1.5 py-0.5 rounded-md text-[10px]", activeTab === 'all' ? "bg-background/20" : "bg-border/60 text-foreground")}>
-                {ALL_TEMPLATES.length + myTemplates.length}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('favorites')}
-              className={cn(
-                "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5",
-                activeTab === 'favorites'
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-            >
-              <Heart size={14} className={favorites.length > 0 ? (activeTab === 'favorites' ? "fill-current" : "text-red-500 fill-red-500") : ""} />
-              <span>Favorites</span>
-              {favorites.length > 0 && (
-                <span className={cn("px-1.5 py-0.5 rounded-md text-[10px]", activeTab === 'favorites' ? "bg-background/20" : "bg-border/60 text-foreground")}>
-                  {favorites.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('my-templates')}
-              className={cn(
-                "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5",
-                activeTab === 'my-templates'
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-            >
-              <FolderPlus size={14} />
-              <span>My Templates</span>
-              {myTemplates.length > 0 && (
-                <span className={cn("px-1.5 py-0.5 rounded-md text-[10px]", activeTab === 'my-templates' ? "bg-background/20" : "bg-border/60 text-foreground")}>
-                  {myTemplates.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('recent')}
-              className={cn(
-                "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5",
-                activeTab === 'recent'
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-            >
-              <Clock size={14} />
-              <span>Recent</span>
-            </button>
+      <div className="bg-card border border-border/60 rounded-xl p-3 sm:p-4 shadow-xs space-y-3">
+        {/* Row 1: Tabs & Search */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none -mx-1 px-1">
+            {([
+              { id: 'all' as GalleryTab, label: 'All Templates', icon: LayoutGrid, count: ALL_TEMPLATES.length + myTemplates.length },
+              { id: 'favorites' as GalleryTab, label: 'Favorites', icon: Heart, count: favorites.length },
+              { id: 'my-templates' as GalleryTab, label: 'My Templates', icon: FolderPlus, count: myTemplates.length },
+              { id: 'recent' as GalleryTab, label: 'Recent', icon: Clock, count: recentIds.length }
+            ]).map((tab) => {
+              const Icon = tab.icon;
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => { setActiveTab(tab.id); if (tab.id === 'all') setSelectedCategory('All'); }}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0",
+                    active
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <Icon size={13} className={tab.id === 'favorites' && favorites.length > 0 && !active ? "text-red-500" : ""} />
+                  <span>{tab.label}</span>
+                  {tab.count > 0 && (
+                    <span className={cn("px-1.5 py-0.5 rounded-md text-[10px]", active ? "bg-background/20" : "bg-border/60 text-foreground")}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          <div className="relative w-full lg:w-80 shrink-0">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative w-full md:w-64 shrink-0">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search 50+ templates..."
-              className="w-full h-9 pl-9 pr-8 rounded-xl border border-border/80 bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground shadow-xs transition-shadow"
+              placeholder="Search templates..."
+              className="w-full h-9 pl-9 pr-8 rounded-lg border border-border/80 bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground transition-shadow"
             />
             {searchQuery && (
               <button
@@ -290,64 +274,115 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
           </div>
         </div>
 
-        {/* Middle Row: Categories */}
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+        {/* Row 2: Category chips + dropdowns + count */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {/* Popular category chips */}
           <button
             type="button"
             onClick={() => setSelectedCategory('All')}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-colors",
+              "px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-colors",
               selectedCategory === 'All'
-                ? "bg-foreground text-background shadow-xs"
-                : "bg-transparent border border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
             )}
           >
-            All Categories
+            All
           </button>
-          {ALL_CATEGORIES.map((cat) => (
+          {POPULAR_CATEGORIES.map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
               className={cn(
-                "px-3 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-colors",
+                "px-2.5 py-1 rounded-md text-[11px] font-medium whitespace-nowrap transition-colors",
                 selectedCategory === cat
-                  ? "bg-foreground text-background font-semibold shadow-xs"
-                  : "bg-transparent border border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  ? "bg-foreground text-background font-semibold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
               )}
             >
               {cat}
             </button>
           ))}
+
+          {/* All Categories — opens portal drawer */}
+          <button
+            type="button"
+            onClick={() => { setCatDropdownOpen(true); setCatSearch(''); }}
+            className={cn(
+              "px-2.5 py-1 rounded-md text-[11px] font-medium whitespace-nowrap transition-colors flex items-center gap-1 border",
+              catDropdownOpen || (selectedCategory !== 'All' && !POPULAR_CATEGORIES.includes(selectedCategory as CategoryType))
+                ? "border-primary/40 text-primary bg-primary/5"
+                : "border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/60"
+            )}
+          >
+            <Tag size={11} />
+            <span>{selectedCategory !== 'All' && !POPULAR_CATEGORIES.includes(selectedCategory as CategoryType) ? selectedCategory : 'All Categories'}</span>
+            <ChevronDown size={11} className={cn("transition-transform", catDropdownOpen && "rotate-180")} />
+          </button>
+
+          {/* Style Filters — opens portal drawer */}
+          <button
+            type="button"
+            onClick={() => {
+              setStylePanelOpen(true);
+              setStyleDraft(selectedStyles);
+            }}
+            className={cn(
+              "px-2.5 py-1 rounded-md text-[11px] font-medium whitespace-nowrap transition-colors flex items-center gap-1 border",
+              stylePanelOpen || selectedStyles.length > 0
+                ? "border-primary/40 text-primary bg-primary/5"
+                : "border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/60"
+            )}
+          >
+            <SlidersHorizontal size={11} />
+            <span>Filters</span>
+            {selectedStyles.length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-md bg-primary text-primary-foreground text-[10px] font-bold">
+                {selectedStyles.length}
+              </span>
+            )}
+          </button>
+
+          <div className="ml-auto text-[11px] text-muted-foreground font-medium">
+            <strong className="text-foreground">{filteredTemplates.length}</strong> designs
+          </div>
         </div>
 
-        {/* Bottom Row: Styles & Count */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-border/60">
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
-            <span className="font-semibold text-foreground/80 flex items-center gap-1 text-[10px] uppercase tracking-wider pr-2">
-              <SlidersHorizontal size={12} /> Style
-            </span>
-            {STYLES.map((style) => (
+        {/* Row 3: Active filter chips */}
+        {activeFilterCount > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-border/50">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Active:</span>
+            {selectedCategory !== 'All' && (
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('All')}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-foreground text-background text-[10px] font-semibold hover:opacity-80 transition-opacity"
+              >
+                {selectedCategory}
+                <X size={10} />
+              </button>
+            )}
+            {selectedStyles.map((style) => (
               <button
                 key={style}
                 type="button"
-                onClick={() => setSelectedStyle(style)}
-                className={cn(
-                  "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors whitespace-nowrap",
-                  selectedStyle === style
-                    ? "bg-primary/10 text-primary font-bold border border-primary/20"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
+                onClick={() => setSelectedStyles((prev) => prev.filter((s) => s !== style))}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 text-[10px] font-semibold hover:bg-primary/20 transition-colors"
               >
                 {style}
+                <X size={10} />
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => { setSelectedCategory('All'); setSelectedStyles([]); }}
+              className="text-[10px] font-medium text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors"
+            >
+              Clear all
+            </button>
           </div>
-
-          <div className="text-[11px] text-muted-foreground font-medium shrink-0 flex items-center justify-end">
-            Showing <strong className="text-foreground ml-1 mr-1">{filteredTemplates.length}</strong> designs
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Templates Grid */}
@@ -384,13 +419,13 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
           </div>
 
           <div className="pt-2 flex items-center justify-center gap-3">
-            {(searchQuery || selectedCategory !== 'All' || selectedStyle !== 'All') && (
+            {(searchQuery || selectedCategory !== 'All' || selectedStyles.length > 0) && (
               <button
                 type="button"
                 onClick={() => {
                   setSearchQuery('');
                   setSelectedCategory('All');
-                  setSelectedStyle('All');
+                  setSelectedStyles([]);
                 }}
                 className="px-4 py-2 rounded-xl bg-muted hover:bg-muted/80 text-xs font-semibold text-foreground transition-colors"
               >
@@ -407,6 +442,201 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Category Drawer (portal) */}
+      {catDropdownOpen && createPortal(
+        <div className="fixed inset-0 z-[9999]">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-200"
+            onClick={() => setCatDropdownOpen(false)}
+          />
+          {/* Drawer panel: right side on desktop, bottom sheet on mobile */}
+          <div className="absolute inset-y-0 right-0 w-full sm:w-80 bg-background border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right-8 fade-in duration-300 max-sm:inset-y-auto max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:h-[85dvh] max-sm:rounded-t-2xl max-sm:border-l-0 max-sm:border-t max-sm:animate-in max-sm:slide-in-from-bottom-8">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-border/60 shrink-0">
+              <div className="flex items-center gap-2">
+                <Tag size={15} className="text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">All Categories</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCatDropdownOpen(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                aria-label="Close categories"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Search */}
+            <div className="px-4 py-3 border-b border-border/40 shrink-0">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={catSearch}
+                  onChange={(e) => setCatSearch(e.target.value)}
+                  placeholder="Search categories..."
+                  autoFocus
+                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-border/80 bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
+            </div>
+
+            {/* Scrollable options */}
+            <div className="flex-1 overflow-y-auto px-3 py-2 min-h-0">
+              <div className="space-y-0.5">
+                <button
+                  type="button"
+                  onClick={() => setCatDraft('All')}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors text-left",
+                    catDraft === 'All' ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                  )}
+                >
+                  <span className={cn(
+                    "w-[18px] h-[18px] rounded-full border flex items-center justify-center shrink-0 transition-colors",
+                    catDraft === 'All' ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"
+                  )}>
+                    {catDraft === 'All' && <Check size={10} strokeWidth={3} />}
+                  </span>
+                  <span className="font-semibold">All Categories</span>
+                </button>
+                {filteredCategories.map((cat) => {
+                  const checked = catDraft === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setCatDraft(cat)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors text-left",
+                        checked ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                      )}
+                    >
+                      <span className={cn(
+                        "w-[18px] h-[18px] rounded-full border flex items-center justify-center shrink-0 transition-colors",
+                        checked ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"
+                      )}>
+                        {checked && <Check size={10} strokeWidth={3} />}
+                      </span>
+                      <span className="truncate">{cat}</span>
+                    </button>
+                  );
+                })}
+                {filteredCategories.length === 0 && (
+                  <p className="px-2.5 py-3 text-[11px] text-muted-foreground text-center">No categories match "{catSearch}".</p>
+                )}
+              </div>
+            </div>
+
+            {/* Sticky footer actions */}
+            <div className="shrink-0 border-t border-border/60 bg-background px-4 py-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCatDraft('All')}
+                className="h-9 px-3 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSelectedCategory(catDraft); setCatDropdownOpen(false); }}
+                className="flex-1 h-9 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Style Filter Drawer (portal) */}
+      {stylePanelOpen && createPortal(
+        <div className="fixed inset-0 z-[9999]">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-200"
+            onClick={() => setStylePanelOpen(false)}
+          />
+          {/* Drawer panel: right side on desktop, bottom sheet on mobile */}
+          <div className="absolute inset-y-0 right-0 w-full sm:w-80 bg-background border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right-8 fade-in duration-300 max-sm:inset-y-auto max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:h-[85dvh] max-sm:rounded-t-2xl max-sm:border-l-0 max-sm:border-t max-sm:animate-in max-sm:slide-in-from-bottom-8">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-border/60 shrink-0">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal size={15} className="text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Filter by Style</h3>
+                {styleDraft.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold">
+                    {styleDraft.length} selected
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setStylePanelOpen(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                aria-label="Close filters"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Scrollable options */}
+            <div className="flex-1 overflow-y-auto px-3 py-2 min-h-0">
+              <div className="space-y-0.5">
+                {availableStyles.map((style) => {
+                  const checked = styleDraft.includes(style);
+                  return (
+                    <button
+                      key={style}
+                      type="button"
+                      onClick={() =>
+                        setStyleDraft((prev) =>
+                          checked ? prev.filter((s) => s !== style) : [...prev, style]
+                        )
+                      }
+                      className={cn(
+                        "w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors text-left",
+                        checked ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                      )}
+                    >
+                      <span className={cn(
+                        "w-4.5 h-4.5 w-[18px] h-[18px] rounded border flex items-center justify-center shrink-0 transition-colors",
+                        checked ? "bg-primary border-primary text-primary-foreground" : "border-border bg-background"
+                      )}>
+                        {checked && <Check size={11} strokeWidth={3} />}
+                      </span>
+                      <span className="truncate">{style}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Sticky footer actions */}
+            <div className="shrink-0 border-t border-border/60 bg-background px-4 py-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setStyleDraft([])}
+                className="h-9 px-3 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                Clear all
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSelectedStyles(styleDraft); setStylePanelOpen(false); }}
+                className="flex-1 h-9 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
+              >
+                Apply{styleDraft.length > 0 ? ` (${styleDraft.length})` : ''}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* Blank Canvas Modal */}

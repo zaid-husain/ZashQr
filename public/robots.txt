@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://qrstudio.zashly.com/sitemap.xml
+Sitemap: https://zashqr.vercel.app/sitemap.xml

@@ -11,7 +11,12 @@ import { TemplateEditor } from './components/editor/TemplateEditor';
 import { getEditorDraft, saveEditorDraft, clearEditorDraft } from './utils/storage';
 import { cn } from './utils/cn';
 import { SEO } from './components/seo/SEO';
-import { createSoftwareAppSchema, createOrganizationSchema } from './utils/seo-schema';
+import { AboutPage } from './components/pages/AboutPage';
+import { CreatorPage } from './components/pages/CreatorPage';
+import { EcosystemPage } from './components/pages/EcosystemPage';
+import { HomeSEOContent } from './components/pages/HomeSEOContent';
+import { ALL_CATEGORIES } from './data/templates';
+import { createSoftwareAppSchema, createOrganizationSchema, createWebSiteSchema, createPersonSchema } from './utils/seo-schema';
 
 // Helper component for Template Category route
 interface TemplateCategoryViewProps {
@@ -19,22 +24,22 @@ interface TemplateCategoryViewProps {
   onCreateBlank: (width: number, height: number, category: CategoryType, name: string) => void;
 }
 
+const slugifyCategory = (name: string) =>
+  name.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
 const TemplateCategoryView: React.FC<TemplateCategoryViewProps> = ({ onOpenTemplate, onCreateBlank }) => {
   const location = useLocation();
-  const categorySlug = location.pathname.split('/').pop()?.replace(/-/g, ' ');
-  
-  const formatCategory = (slug: string) => {
-    return slug.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  };
+  const categorySlug = location.pathname.split('/').pop() || '';
 
-  const formattedCategory = categorySlug ? formatCategory(categorySlug) : 'All';
+  const matchedCategory = ALL_CATEGORIES.find((c) => slugifyCategory(c) === categorySlug);
+  const formattedCategory = matchedCategory || 'All';
 
   return (
     <>
       <SEO 
         title={`ZashQr Templates – Professional ${formattedCategory} QR Designs`}
         description={`Customize beautifully designed ${formattedCategory} QR code templates for your business, event, or personal use. Ready to download in PNG or SVG.`}
-        canonicalUrl={`https://qrstudio.zashly.com${location.pathname}`}
+        canonicalUrl={`https://zashqr.vercel.app${location.pathname}`}
       />
       <TemplateGallery
         initialCategory={formattedCategory}
@@ -46,25 +51,43 @@ const TemplateCategoryView: React.FC<TemplateCategoryViewProps> = ({ onOpenTempl
 };
 
 // Route wrapper for /about
-const AboutPageRoute: React.FC<{ showToast: (msg: string) => void }> = ({ showToast }) => {
-  const [modalOpen, setModalOpen] = useState(true);
-  const navigate = useNavigate();
-
+const AboutPageRoute: React.FC = () => {
   return (
     <>
-      <SEO 
-        title="About ZashQr – Built by Zashly"
-        description="ZashQr is part of the Zashly ecosystem. Discover how we built a fast, free, and completely private QR code generator."
-        canonicalUrl="https://qrstudio.zashly.com/about"
+      <SEO
+        title="About ZashQr – Free QR Code Generator & Template Designer | Zashly"
+        description="Learn what ZashQr is, how it works, and who built it. A free, privacy-first QR code generator and template designer created by Zaid Husain as part of the Zashly ecosystem."
+        canonicalUrl="https://zashqr.vercel.app/about"
       />
-      <QRGeneratorView showToast={showToast} />
-      <AboutModal
-        isOpen={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          navigate('/');
-        }}
+      <AboutPage />
+    </>
+  );
+};
+
+// Route wrapper for /about/zaid-husain
+const CreatorPageRoute: React.FC = () => {
+  return (
+    <>
+      <SEO
+        title="Zaid Husain – Developer of ZashQr | Zashly Ecosystem"
+        description="Zaid Husain is a software developer and the creator of ZashQr, a modern QR code generation and template design platform. Explore his projects in the Zashly ecosystem."
+        canonicalUrl="https://zashqr.vercel.app/about/zaid-husain"
       />
+      <CreatorPage />
+    </>
+  );
+};
+
+// Route wrapper for /ecosystem
+const EcosystemPageRoute: React.FC = () => {
+  return (
+    <>
+      <SEO
+        title="Zashly Ecosystem – Modern Digital Products by Zaid Husain"
+        description="Explore the Zashly ecosystem: Zashly, Zashub, Zashio, ZashBiz, and ZashQr — modern digital products created by Zaid Husain."
+        canonicalUrl="https://zashqr.vercel.app/ecosystem"
+      />
+      <EcosystemPage />
     </>
   );
 };
@@ -79,7 +102,7 @@ const PrivacyPageRoute: React.FC<{ showToast: (msg: string) => void }> = ({ show
       <SEO 
         title="Privacy Policy – ZashQr"
         description="ZashQr is 100% private and client-side. No tracking, no backend database, and zero data leaves your browser."
-        canonicalUrl="https://qrstudio.zashly.com/privacy"
+        canonicalUrl="https://zashqr.vercel.app/privacy"
       />
       <QRGeneratorView showToast={showToast} />
       <AboutModal
@@ -199,7 +222,12 @@ export default function App() {
   };
 
   // Structured data for home page
-  const homeSchema = [createOrganizationSchema(), createSoftwareAppSchema()];
+  const homeSchema = [
+    createWebSiteSchema(),
+    createOrganizationSchema(),
+    createPersonSchema(),
+    createSoftwareAppSchema()
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-200">
@@ -222,7 +250,7 @@ export default function App() {
       />
 
       {/* Main Content Viewport */}
-      <main className="flex-1 container max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 container max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         {!activeEditorTemplate && (
           <Routes>
             <Route 
@@ -231,6 +259,7 @@ export default function App() {
                 <>
                   <SEO structuredData={homeSchema} />
                   <QRGeneratorView showToast={showToast} />
+                  <HomeSEOContent />
                 </>
               } 
             />
@@ -240,7 +269,7 @@ export default function App() {
                 <>
                   <SEO 
                     title="ZashQr – Free QR Code Generator" 
-                    canonicalUrl="https://qrstudio.zashly.com/generator" 
+                    canonicalUrl="https://zashqr.vercel.app/generator" 
                   />
                   <QRGeneratorView showToast={showToast} />
                 </>
@@ -253,7 +282,7 @@ export default function App() {
                   <SEO 
                     title="ZashQr Templates – Professional QR Designs"
                     description="Explore 100+ professional, fully editable QR code templates. Create beautiful QR posters, menus, flyers, business cards, and more."
-                    canonicalUrl="https://qrstudio.zashly.com/templates"
+                    canonicalUrl="https://zashqr.vercel.app/templates"
                   />
                   <TemplateGallery
                     onOpenTemplate={handleOpenTemplate}
@@ -273,7 +302,15 @@ export default function App() {
             />
             <Route 
               path="/about" 
-              element={<AboutPageRoute showToast={showToast} />} 
+              element={<AboutPageRoute />} 
+            />
+            <Route 
+              path="/about/zaid-husain" 
+              element={<CreatorPageRoute />} 
+            />
+            <Route 
+              path="/ecosystem" 
+              element={<EcosystemPageRoute />} 
             />
             <Route 
               path="/privacy" 

@@ -14,7 +14,12 @@ export const QRCodeSVG: React.FC<QRCodeSVGProps> = ({
   bgColor,
   moduleStyle,
   finderStyle,
+  finderColor,
   logoUrl,
+  logoEnabled = true,
+  logoScale = 0.26,
+  logoPadding = 4,
+  quietZone = 16,
   size,
   errorCorrectionLevel,
   id = 'qr-preview-svg',
@@ -36,17 +41,18 @@ export const QRCodeSVG: React.FC<QRCodeSVGProps> = ({
   }
 
   const moduleSize = qrData.size;
-  const padding = 16; // quiet zone in px
+  const padding = quietZone; // quiet zone in px
   const innerSize = size - padding * 2;
   const cellSize = innerSize / moduleSize;
+  const activeLogo = logoEnabled ? logoUrl : undefined;
+  const finderFill = finderColor || fgColor;
 
   // Calculate logo clearance if logo is present
-  const logoScale = 0.26;
   const logoModules = Math.max(3, Math.floor(moduleSize * logoScale));
   const logoOffset = Math.floor((moduleSize - logoModules) / 2);
   
   const inLogoArea = (row: number, col: number) => {
-    if (!logoUrl) return false;
+    if (!activeLogo) return false;
     const pad = 1;
     return (
       row >= logoOffset - pad &&
@@ -130,7 +136,7 @@ export const QRCodeSVG: React.FC<QRCodeSVGProps> = ({
       const outerRx = cellSize * 1.6;
       const innerRx = cellSize * 0.9;
       return (
-        <g key={keyPrefix} fill={fgColor}>
+        <g key={keyPrefix} fill={finderFill}>
           {/* Outer Ring */}
           <rect
             x={x}
@@ -139,7 +145,7 @@ export const QRCodeSVG: React.FC<QRCodeSVGProps> = ({
             height={finderDim}
             rx={outerRx}
             ry={outerRx}
-            fill={fgColor}
+            fill={finderFill}
           />
           {/* Inner Gap / Cutout */}
           <rect
@@ -159,7 +165,7 @@ export const QRCodeSVG: React.FC<QRCodeSVGProps> = ({
             height={3 * cellSize}
             rx={innerRx}
             ry={innerRx}
-            fill={fgColor}
+            fill={finderFill}
           />
         </g>
       );
@@ -167,8 +173,8 @@ export const QRCodeSVG: React.FC<QRCodeSVGProps> = ({
 
     // Classic Square Finder
     return (
-      <g key={keyPrefix} fill={fgColor}>
-        <rect x={x} y={y} width={finderDim} height={finderDim} fill={fgColor} />
+      <g key={keyPrefix} fill={finderFill}>
+        <rect x={x} y={y} width={finderDim} height={finderDim} fill={finderFill} />
         <rect
           x={x + cellSize}
           y={y + cellSize}
@@ -181,7 +187,7 @@ export const QRCodeSVG: React.FC<QRCodeSVGProps> = ({
           y={y + 2 * cellSize}
           width={3 * cellSize}
           height={3 * cellSize}
-          fill={fgColor}
+          fill={finderFill}
         />
       </g>
     );
@@ -216,16 +222,16 @@ export const QRCodeSVG: React.FC<QRCodeSVGProps> = ({
       {finders}
 
       {/* Center Logo with clean padded badge */}
-      {logoUrl && (
+      {activeLogo && (
         <g>
           <rect
-            x={logoX - 4}
-            y={logoY - 4}
-            width={logoPixelSize + 8}
-            height={logoPixelSize + 8}
+            x={logoX - logoPadding}
+            y={logoY - logoPadding}
+            width={logoPixelSize + logoPadding * 2}
+            height={logoPixelSize + logoPadding * 2}
             fill={bgColor}
-            rx={8}
-            ry={8}
+            rx={logoPadding + 4}
+            ry={logoPadding + 4}
           />
           <image
             href={logoUrl}

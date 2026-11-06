@@ -20,7 +20,12 @@ export interface QRCodeOptions {
   bgColor: string;
   moduleStyle: ModuleStyle;
   finderStyle: FinderStyle;
+  finderColor?: string;
   logoUrl?: string;
+  logoEnabled?: boolean;
+  logoScale?: number;
+  logoPadding?: number;
+  quietZone?: number;
   size: number;
   errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
 }
