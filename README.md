@@ -1,6 +1,6 @@
-<div align="center">
-
 # ⚡ ZashQr
+
+<div align="center">
 
 **A modern, beautiful, and customizable QR Code Generator & Template Designer.**
 
@@ -16,15 +16,16 @@ Create, customize, and download stunning QR codes in seconds with an intuitive C
 
 ## ✨ Overview
 
-QR Studio is a premium web application for generating and designing QR codes. It combines a fast QR code generator with a simple drag-and-drop template editor, allowing users to create professional marketing materials, business cards, posters, menus, invitations, and more.
+ZashQr is a premium web application for generating and designing QR codes. It combines a fast QR code generator with a simple drag-and-drop template editor, allowing users to create professional marketing materials, business cards, posters, menus, invitations, and more.
 
-Built with a clean, responsive interface inspired by Apple, Vercel, and Claude, QR Studio focuses on simplicity, speed, and an exceptional user experience.
+Built with a clean, responsive interface inspired by Apple, Vercel, and Claude, ZashQr focuses on simplicity, speed, and an exceptional user experience.
 
 ---
 
 ## 🚀 Features
 
 ### 🔗 QR Code Generator
+
 - Generate QR codes instantly
 - URL, Text, Email, Phone & Wi-Fi QR support
 - Live QR preview
@@ -36,6 +37,7 @@ Built with a clean, responsive interface inspired by Apple, Vercel, and Claude, 
 - Error correction options
 
 ### 🎨 QR Template Designer
+
 - Canva-inspired editing experience
 - 100+ professionally designed templates
 - Drag & drop editor
@@ -53,6 +55,7 @@ Built with a clean, responsive interface inspired by Apple, Vercel, and Claude, 
 - Export as PNG, JPG, PDF & SVG
 
 ### 🎯 User Experience
+
 - Apple-inspired clean UI
 - Fully responsive design
 - Mobile-first experience
@@ -67,7 +70,7 @@ Built with a clean, responsive interface inspired by Apple, Vercel, and Claude, 
 
 ## 📱 Responsive Design
 
-QR Studio is optimized for:
+ZashQr is optimized for:
 
 - 📱 Mobile
 - 📱 Tablets
@@ -103,8 +106,8 @@ QR Studio is optimized for:
 
 ## 📂 Project Structure
 
-```
-QR-Studio/
+```text
+ZashQr/
 │
 ├── src/
 │   ├── components/
@@ -126,9 +129,9 @@ QR-Studio/
 ## ⚙️ Installation
 
 ```bash
-git clone https://github.com/yourusername/qr-studio.git
+git clone https://github.com/yourusername/zashqr.git
 
-cd qr-studio
+cd zashqr
 
 npm install
 
@@ -229,11 +232,10 @@ This project is licensed under the MIT License.
 
 ### Zashly
 
-QR Studio is part of the **Zashly ecosystem**, a collection of modern web applications focused on delivering clean design, exceptional user experience, and powerful developer tools.
+ZashQr is part of the **Zashly ecosystem**, a collection of modern web applications focused on delivering clean design, exceptional user experience, and powerful digital solutions.
 
-Other projects include:
+Other projects in the ecosystem include:
 
-- ZashQr
 - Zashly
 - Zashub
 - Zashio
