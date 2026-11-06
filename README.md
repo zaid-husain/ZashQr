@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ QR Studio
+# ⚡ ZashQr
 
 **A modern, beautiful, and customizable QR Code Generator & Template Designer.**
 
@@ -233,10 +233,11 @@ QR Studio is part of the **Zashly ecosystem**, a collection of modern web applic
 
 Other projects include:
 
-- QR Studio
+- ZashQr
 - Zashly
 - Zashub
 - Zashio
+- ZashBiz
 
 ---
 
