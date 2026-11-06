@@ -12,7 +12,7 @@ export const createOrganizationSchema = () => ({
 export const createSoftwareAppSchema = () => ({
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "QR Studio",
+  "name": "ZashQr",
   "operatingSystem": "Web",
   "applicationCategory": "DesignApplication",
   "description": "Free online QR code generator that lets you create, customize, and download beautiful QR codes.",

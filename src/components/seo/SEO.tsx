@@ -11,8 +11,8 @@ interface SEOProps {
 }
 
 export const SEO: React.FC<SEOProps> = ({
-  title = 'QR Studio – Free QR Code Generator',
-  description = 'QR Studio is a free online QR code generator that lets you create, customize, and download beautiful QR codes. Design QR posters, flyers, business cards, menus, invitations, and more with professional templates. Built by Zashly.',
+  title = 'ZashQr – Free QR Code Generator',
+  description = 'ZashQr is a free online QR code generator that lets you create, customize, and download beautiful QR codes. Design QR posters, flyers, business cards, menus, invitations, and more with professional templates. Built by Zashly.',
   canonicalUrl,
   ogImage = 'https://qrstudio.zashly.com/og-image.jpg',
   structuredData,
@@ -33,7 +33,7 @@ export const SEO: React.FC<SEOProps> = ({
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={ogImage} />
-      <meta property="og:site_name" content="QR Studio" />
+      <meta property="og:site_name" content="ZashQr" />
 
       {/* Twitter */}
       <meta property="twitter:card" content="summary_large_image" />

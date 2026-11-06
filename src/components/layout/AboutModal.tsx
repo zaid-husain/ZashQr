@@ -35,7 +35,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
               <QrCode size={18} strokeWidth={2.2} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-foreground">About QR Studio</h2>
+              <h2 className="text-base font-bold text-foreground">About ZashQr</h2>
               <p className="text-[11px] text-muted-foreground">Version 2.0 • Pro QR Generator & Design Studio</p>
             </div>
           </div>
@@ -51,7 +51,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
 
         {/* Description */}
         <p className="text-xs text-muted-foreground leading-relaxed">
-          QR Studio is a fast, privacy-first client-side studio for generating custom QR codes and designing printable marketing materials, posters, business cards, flyers, and social media posts.
+          ZashQr is a fast, privacy-first client-side studio for generating custom QR codes and designing printable marketing materials, posters, business cards, flyers, and social media posts.
         </p>
 
         {/* Key Features Grid */}

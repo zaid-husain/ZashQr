@@ -1,6 +1,10 @@
 # ⚡ ZashQr
 
+<<<<<<< HEAD
 <div align="center">
+=======
+# ⚡ ZashQr
+>>>>>>> 0f764d3 (Update project branding to ZashQr)
 
 **A modern, beautiful, and customizable QR Code Generator & Template Designer.**
 
@@ -106,7 +110,11 @@ ZashQr is optimized for:
 
 ## 📂 Project Structure
 
+<<<<<<< HEAD
 ```text
+=======
+```
+>>>>>>> 0f764d3 (Update project branding to ZashQr)
 ZashQr/
 │
 ├── src/
@@ -232,10 +240,18 @@ This project is licensed under the MIT License.
 
 ### Zashly
 
+<<<<<<< HEAD
 ZashQr is part of the **Zashly ecosystem**, a collection of modern web applications focused on delivering clean design, exceptional user experience, and powerful digital solutions.
+=======
+ZashQr is part of the **Zashly ecosystem**, a collection of modern web applications focused on delivering clean design, exceptional user experience, and powerful developer tools.
+>>>>>>> 0f764d3 (Update project branding to ZashQr)
 
 Other projects in the ecosystem include:
 
+<<<<<<< HEAD
+=======
+- ZashQr
+>>>>>>> 0f764d3 (Update project branding to ZashQr)
 - Zashly
 - Zashub
 - Zashio

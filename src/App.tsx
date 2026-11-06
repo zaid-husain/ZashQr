@@ -32,7 +32,7 @@ const TemplateCategoryView: React.FC<TemplateCategoryViewProps> = ({ onOpenTempl
   return (
     <>
       <SEO 
-        title={`QR Studio Templates – Professional ${formattedCategory} QR Designs`}
+        title={`ZashQr Templates – Professional ${formattedCategory} QR Designs`}
         description={`Customize beautifully designed ${formattedCategory} QR code templates for your business, event, or personal use. Ready to download in PNG or SVG.`}
         canonicalUrl={`https://qrstudio.zashly.com${location.pathname}`}
       />
@@ -53,8 +53,8 @@ const AboutPageRoute: React.FC<{ showToast: (msg: string) => void }> = ({ showTo
   return (
     <>
       <SEO 
-        title="About QR Studio – Built by Zashly"
-        description="QR Studio is part of the Zashly ecosystem. Discover how we built a fast, free, and completely private QR code generator."
+        title="About ZashQr – Built by Zashly"
+        description="ZashQr is part of the Zashly ecosystem. Discover how we built a fast, free, and completely private QR code generator."
         canonicalUrl="https://qrstudio.zashly.com/about"
       />
       <QRGeneratorView showToast={showToast} />
@@ -77,8 +77,8 @@ const PrivacyPageRoute: React.FC<{ showToast: (msg: string) => void }> = ({ show
   return (
     <>
       <SEO 
-        title="Privacy Policy – QR Studio"
-        description="QR Studio is 100% private and client-side. No tracking, no backend database, and zero data leaves your browser."
+        title="Privacy Policy – ZashQr"
+        description="ZashQr is 100% private and client-side. No tracking, no backend database, and zero data leaves your browser."
         canonicalUrl="https://qrstudio.zashly.com/privacy"
       />
       <QRGeneratorView showToast={showToast} />
@@ -239,7 +239,7 @@ export default function App() {
               element={
                 <>
                   <SEO 
-                    title="QR Studio – Free QR Code Generator" 
+                    title="ZashQr – Free QR Code Generator" 
                     canonicalUrl="https://qrstudio.zashly.com/generator" 
                   />
                   <QRGeneratorView showToast={showToast} />
@@ -251,7 +251,7 @@ export default function App() {
               element={
                 <>
                   <SEO 
-                    title="QR Studio Templates – Professional QR Designs"
+                    title="ZashQr Templates – Professional QR Designs"
                     description="Explore 100+ professional, fully editable QR code templates. Create beautiful QR posters, menus, flyers, business cards, and more."
                     canonicalUrl="https://qrstudio.zashly.com/templates"
                   />

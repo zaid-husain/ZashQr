@@ -8,7 +8,7 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
           <div className="flex flex-col gap-1.5">
             <h3 className="font-bold text-foreground text-lg flex items-center gap-2">
-              QR Studio
+              ZashQr
               <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
                 Free
               </span>

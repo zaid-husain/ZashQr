@@ -280,7 +280,7 @@ export const QRGeneratorView: React.FC<QRGeneratorViewProps> = ({ showToast }) =
                   <Label htmlFor="email-subj" className="text-xs font-medium">Subject</Label>
                   <Input
                     id="email-subj"
-                    placeholder="Hello from QR Studio"
+                    placeholder="Hello from ZashQr"
                     value={data.raw.email.subject}
                     onChange={(e) => updateRaw('email', { ...data.raw.email, subject: e.target.value })}
                   />

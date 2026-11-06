@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <QrCode size={18} strokeWidth={2.2} />
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="font-bold tracking-tight text-lg">QR Studio</span>
+                <span className="font-bold tracking-tight text-lg">ZashQr</span>
               </div>
             </Link>
 
@@ -129,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="w-8 h-8 rounded-lg bg-foreground text-background flex items-center justify-center shadow-xs">
               <QrCode size={18} strokeWidth={2.2} />
             </div>
-            <span className="font-bold tracking-tight text-lg">QR Studio</span>
+            <span className="font-bold tracking-tight text-lg">ZashQr</span>
           </div>
           <button
             onClick={() => setMobileDrawerOpen(false)}
@@ -215,7 +215,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium hover:bg-muted/50 text-foreground transition-colors text-sm cursor-pointer"
             >
               <Info size={18} className="text-muted-foreground" />
-              About QR Studio
+              About ZashQr
             </button>
           </div>
 
